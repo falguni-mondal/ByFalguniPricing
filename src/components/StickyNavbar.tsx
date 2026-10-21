@@ -7,8 +7,8 @@ interface Props {
   sym: string;
   darkMode: boolean;
   toggleTheme: () => void;
-  grandTotal: number;
-  onOpenBreakdown: () => void;
+  grandTotal?: number;
+  onOpenBreakdown?: () => void;
 }
 
 export const StickyNavbar: FC<Props> = ({
@@ -16,8 +16,6 @@ export const StickyNavbar: FC<Props> = ({
   sym,
   darkMode,
   toggleTheme,
-  grandTotal,
-  onOpenBreakdown,
 }) => (
   <header className="fixed top-3 left-0 right-0 z-50 mx-auto w-full max-w-6xl px-3 sm:top-4 sm:px-6">
     <div className="liquid-glass-pill flex flex-wrap items-center justify-between gap-3 rounded-full px-4 py-2.5 sm:px-6 sm:py-3">
@@ -60,15 +58,6 @@ export const StickyNavbar: FC<Props> = ({
           )}
           <span className="hidden sm:inline">{darkMode ? 'Light' : 'Dark'}</span>
         </button>
-
-        {/* <button
-          type="button"
-          onClick={onOpenBreakdown}
-          className="liquid-glass-active cursor-pointer rounded-full px-4 py-1.5 text-xs font-bold"
-        >
-          Breakdown ({sym}
-          {Number(grandTotal || 0).toLocaleString()})
-        </button> */}
       </div>
     </div>
   </header>

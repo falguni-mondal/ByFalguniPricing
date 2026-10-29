@@ -26,7 +26,7 @@ export const SCOPE_COMPARISON = {
 };
 
 export const WORKFLOW_STEPS = [
-  '1. Scope & Needs Submission: You submit your website category, page count, desired functionalities, motion tier, business brief, and custom notes through this configurator.',
+  '1. Scope & Needs Submission: You submit your required page count, business brief, and any desired category, functionalities, motion preferences, and custom notes through this configurator.',
   '2. Review & Tailored Quote: Your submitted requirements and custom notes are reviewed by ByFalguni, and a tailored project quote & timeline proposal is shared with you.',
   '3. Vision & Quote Confirmation: Mandatory written confirmation of the agreed pages, features, animations, timeline, and final quote before development begins.',
   '4. Content & Asset Handover: You supply complete text copy, logos, images, structured catalog files (CSV/Sheet/JSON), and design references.',
@@ -43,7 +43,7 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
     number: '01',
     title: 'Scope Submission, Custom Quotation & Currency Policy',
     bullets: [
-      'This document records your submitted project requirements, selected functionalities, custom written notes, and service terms. It is a Project Scope Submission & Service Agreement and not an automated price quote.',
+      'This document records your submitted project requirements, page count, selected functionalities, custom written notes, and service terms. It is a Project Scope Submission & Service Agreement and not an automated price quote.',
       'After reviewing your submitted requirements and custom writings, ByFalguni will prepare and send an official tailored project quote and milestone schedule for your approval.',
       'Clients registered in India are billed in Indian Rupees (INR). All other clients are billed in US Dollars (USD).',
       'If you later choose to upgrade animations, add pages, or include extra features beyond your initial scope, only the additional scope difference is quoted.',
@@ -251,9 +251,12 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
   const categoryObj = WEBSITE_TYPES.find((t) => t.id === payload.projectPurpose);
   const categoryLabel = categoryObj
     ? `${categoryObj.title} (${categoryObj.id})`
-    : payload.projectPurpose || 'Custom / Not Specified';
-  const motionLabel =
-    MOTION_TIER_LABELS[payload.animationTier] || payload.animationTier || '1st Tier: Completely Static';
+    : payload.projectPurpose && payload.projectPurpose !== 'Custom'
+    ? payload.projectPurpose
+    : 'Not specified';
+  const motionLabel = payload.animationTier
+    ? MOTION_TIER_LABELS[payload.animationTier] || payload.animationTier
+    : 'Not specified';
   const notes = payload.customSectionNotes || {};
 
   // --- SECTION 1: CLIENT CHOICES & PROJECT BRIEF SUMMARY ---
@@ -265,18 +268,24 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
     `Client Full Name: ${payload.fullName || 'N/A'}`,
     `Email Address: ${payload.email || 'N/A'}   |   Phone / WhatsApp: ${payload.phone || 'N/A'}`,
     `Country / Region: ${payload.countryName} (${payload.region})   |   Client Stated Target Budget: ${
-      payload.budget > 0 ? `${sym}${payload.budget.toLocaleString()}` : 'To be discussed'
+      payload.budget > 0
+        ? `${sym}${payload.budget.toLocaleString()}`
+        : 'Not specified (Custom quote requested)'
     }`,
-    `Selected Website Category (Tab 02): ${categoryLabel}`,
-    `Selected Number of Pages (Tab 02): ${payload.pages} ${payload.pages === 1 ? 'Page' : 'Pages'}`,
-    `Selected Motion & Visual Tier (Tab 04): ${motionLabel}`,
-    `Business / Project Name (Tab 05): ${payload.businessName || 'N/A'}`,
-    `Main Website Goal (Tab 05): ${payload.mainGoal || 'N/A'}`,
-    `Description of the Business (Tab 05): ${payload.businessDescription || 'N/A'}`,
-    `Ideal Launch Date & Reason (Tab 05): ${payload.launchDateReason || 'N/A'}   |   Priority / Rush Delivery: ${
+    `Required Number of Pages: ${payload.pages} ${payload.pages === 1 ? 'Page' : 'Pages'}`,
+    `Selected Website Category: ${categoryLabel}`,
+    `Selected Motion & Visual Experience: ${motionLabel}`,
+    `Business / Project Name: ${payload.businessName || 'N/A'}`,
+    `Main Website Goal: ${payload.mainGoal || 'N/A'}`,
+    `Description of the Business: ${payload.businessDescription || 'N/A'}`,
+    `Ideal Launch Date & Reason: ${
+      payload.launchDateReason?.trim() || 'Not specified'
+    }   |   Priority / Rush Delivery: ${
       payload.rushDelivery ? 'Yes (Requested)' : 'No (Standard Timeline)'
     }`,
-    `Figma Design Link / Reference Website URLs (Tab 05): ${payload.designReferences || 'N/A'}`,
+    `Figma Design Link / Reference Website URLs: ${
+      payload.designReferences?.trim() || 'Not specified'
+    }`,
     `Hosting & Domain Setup: Included Free of Charge (No one-time setup fee)`,
   ];
 
@@ -291,15 +300,20 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
 
   if (payload.selectedTags && payload.selectedTags.length > 0) {
     writeWrappedParagraph(
-      `Selected Functionality Toggles (${payload.selectedTags.length} selected):`,
+      `Selected Functionality Options (${payload.selectedTags.length} selected):`,
       9.5,
       'bold',
       4
     );
-    writeWrappedParagraph(payload.selectedTags.map((t) => `[x] ${t}`).join('   |   '), 8.8, 'normal', 8);
+    writeWrappedParagraph(
+      payload.selectedTags.map((t) => `[x] ${t}`).join('   |   '),
+      8.8,
+      'normal',
+      8
+    );
   } else {
     writeWrappedParagraph(
-      'Selected Functionality Toggles: None selected (Frontend-only or described in custom notes below).',
+      'Selected Functionality Options: None selected.',
       9,
       'normal',
       4
@@ -307,9 +321,9 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
   }
 
   y += 3;
-  writeWrappedParagraph('Client Custom Writings Across All Sections:', 9.5, 'bold', 4);
+  writeWrappedParagraph('Client Custom Writings:', 9.5, 'bold', 4);
   writeWrappedParagraph(
-    `- Custom Category & Page Structure Note (Tab 02): ${
+    `- Custom Website Category & Page Structure Note: ${
       notes.pagesAndTypeNote?.trim() || 'None provided'
     }`,
     8.8,
@@ -317,7 +331,7 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
     8
   );
   writeWrappedParagraph(
-    `- Custom Functionality & Workflow Note (Tab 03): ${
+    `- Custom Functionality & Workflow Note: ${
       notes.functionalityNote?.trim() || 'None provided'
     }`,
     8.8,
@@ -325,7 +339,7 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
     8
   );
   writeWrappedParagraph(
-    `- Custom Motion, Animation & 3D Note (Tab 04): ${
+    `- Custom Motion, Animation & 3D Note: ${
       notes.motionAndFeelNote?.trim() || 'None provided'
     }`,
     8.8,
@@ -333,7 +347,7 @@ export function generateAndDownloadAgreementPdf(payload: AgreementPdfPayload): {
     8
   );
   writeWrappedParagraph(
-    `- Additional Project Brief Note (Tab 05): ${
+    `- Additional Project Brief Note: ${
       notes.briefExtraNote?.trim() || 'None provided'
     }`,
     8.8,

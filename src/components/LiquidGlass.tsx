@@ -1,24 +1,39 @@
 // frontend/src/components/LiquidGlass.tsx
-import type { FC } from 'react';
+import { memo, useEffect, useState, type FC } from 'react';
 
-export const LiquidGlassFilterSVG: FC = () => (
-  <>
-    <style>{`
-      .liquid-glass-pill,
-      .dark .liquid-glass-pill {
-        -webkit-backdrop-filter: blur(14px) saturate(190%);
-        backdrop-filter: blur(14px) saturate(190%);
-        -webkit-backdrop-filter: url(#apple-liquid-glass) blur(14px) saturate(190%);
-        backdrop-filter: url(#apple-liquid-glass) blur(14px) saturate(190%);
+export const LiquidGlassFilterSVG: FC = memo(() => {
+  const [isLowEnd, setIsLowEnd] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const lowCores = (navigator.hardwareConcurrency || 8) <= 4;
+    const lowMem = ((navigator as any).deviceMemory || 8) <= 4;
+    return coarsePointer || reducedMotion || lowCores || lowMem;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isLowEnd) {
+      root.classList.add('low-end-glass');
+    } else {
+      root.classList.remove('low-end-glass');
+    }
+
+    const mq = window.matchMedia?.('(max-width: 768px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        setIsLowEnd(true);
+        root.classList.add('low-end-glass');
       }
-      .liquid-glass-active,
-      .dark .liquid-glass-active {
-        -webkit-backdrop-filter: blur(16px) saturate(180%);
-        backdrop-filter: blur(16px) saturate(180%);
-        -webkit-backdrop-filter: url(#apple-liquid-glass) blur(16px) saturate(180%);
-        backdrop-filter: url(#apple-liquid-glass) blur(16px) saturate(180%);
-      }
-    `}</style>
+    };
+    mq?.addEventListener?.('change', handleChange);
+    return () => mq?.removeEventListener?.('change', handleChange);
+  }, [isLowEnd]);
+
+  // Do not mount expensive SVG feTurbulence / feSpecularLighting filters on mobile or low-end GPUs
+  if (isLowEnd) return null;
+
+  return (
     <svg
       width="0"
       height="0"
@@ -28,42 +43,30 @@ export const LiquidGlassFilterSVG: FC = () => (
       <defs>
         <filter
           id="apple-liquid-glass"
-          x="-25%"
-          y="-25%"
-          width="150%"
-          height="150%"
+          x="-15%"
+          y="-15%"
+          width="130%"
+          height="130%"
           colorInterpolationFilters="sRGB"
         >
           <feTurbulence
             type="fractalNoise"
             baseFrequency="0.013 0.017"
-            numOctaves="2"
+            numOctaves="1"
             seed="11"
             result="lensNoise"
           />
-          <feGaussianBlur in="lensNoise" stdDeviation="3.2" result="smoothedLens" />
+          <feGaussianBlur in="lensNoise" stdDeviation="3" result="smoothedLens" />
           <feDisplacementMap
             in="SourceGraphic"
             in2="smoothedLens"
-            scale="18"
+            scale="12"
             xChannelSelector="R"
             yChannelSelector="G"
             result="refractedBackground"
           />
-          <feSpecularLighting
-            in="smoothedLens"
-            surfaceScale="3"
-            specularConstant="0.85"
-            specularExponent="28"
-            lightingColor="#ffffff"
-            result="specularRim"
-          >
-            <fePointLight x="-160" y="-220" z="280" />
-          </feSpecularLighting>
-          <feComposite in="specularRim" in2="SourceAlpha" operator="in" result="clippedSpecular" />
-          <feBlend in="refractedBackground" in2="clippedSpecular" mode="screen" />
         </filter>
       </defs>
     </svg>
-  </>
-);
+  );
+});

@@ -17,7 +17,7 @@ export interface ComplexQuoteConfig {
   extraLanguages: number;
   rtlSurcharge: boolean;
   basicFunctionalityPages: number;
-  animationTier: 'NONE' | 'BASIC' | 'ADVANCED' | 'WEBGL_3D';
+  animationTier: '' | 'NONE' | 'BASIC' | 'ADVANCED' | 'WEBGL_3D';
   animationPages: number;
   darkLightSwitch: boolean;
   pageTransitions: boolean;
@@ -74,81 +74,87 @@ export interface ComplexQuoteConfig {
   isAdminComplexOverride?: boolean;
 }
 
-export function inferComplexConfigFromSimple(input: any): ComplexQuoteConfig {
-  const rawPages = Math.max(0, Number(input.pages) || 0);
-  const rawMotion = input.animationTier || 'NONE';
+export function inferComplexConfigFromSimple(input: Record<string, any>): ComplexQuoteConfig {
+  const rawPages = Math.max(0, Number(input?.pages) || 0);
+  const rawMotion = input?.animationTier || 'NONE';
   const is3DTier = rawMotion === 'WEBGL_3D';
 
   const base: ComplexQuoteConfig = {
-    region: input.region === 'INTL' ? 'INTL' : 'INDIA',
-    budget: Math.max(0, Number(input.budget) || 0),
-    lastChangedField: input.lastChangedField || 'pages',
-    discountPercent: Number(input.discountPercent) || 0,
-    projectPurpose: input.projectPurpose || '',
-    clientDescription: input.clientDescription || '',
+    region: input?.region === 'INTL' ? 'INTL' : 'INDIA',
+    budget: Math.max(0, Number(input?.budget) || 0),
+    lastChangedField: input?.lastChangedField || 'pages',
+    discountPercent: Number(input?.discountPercent) || 0,
+    projectPurpose: input?.projectPurpose || '',
+    clientDescription: input?.clientDescription || '',
     pages: rawPages,
-    extraSectionsStatic: Number(input.extraSectionsStatic) || 0,
-    extraSectionsAdvanced: Number(input.extraSectionsAdvanced) || 0,
-    dynamicTemplates: Number(input.dynamicTemplates) || 0,
-    extraDynamicItems10x: Number(input.extraDynamicItems10x) || 0,
-    multiLanguageSetup: Boolean(input.multiLanguageSetup),
-    extraLanguages: Number(input.extraLanguages) || 0,
-    rtlSurcharge: Boolean(input.rtlSurcharge),
-    basicFunctionalityPages: Number(input.basicFunctionalityPages) || 0,
-    animationTier: is3DTier ? 'ADVANCED' : rawMotion === 'NONE' ? 'NONE' : rawMotion,
-    animationPages: Number(input.animationPages) || rawPages,
-    darkLightSwitch: Boolean(input.darkLightSwitch),
-    pageTransitions: Boolean(input.pageTransitions),
-    customCursor: Boolean(input.customCursor),
-    preloader: Boolean(input.preloader),
-    webglScenes: is3DTier ? Math.max(1, Number(input.webglScenes) || 1) : Number(input.webglScenes) || 0,
-    customShader: Boolean(input.customShader),
-    scrollLinkedCamera: Boolean(input.scrollLinkedCamera),
-    mobileFallbackTuning: Boolean(input.mobileFallbackTuning),
-    modelIntegrationTier: input.modelIntegrationTier || 'NONE',
-    modelOptimizationTier: input.modelOptimizationTier || 'NONE',
-    contactForm: Boolean(input.contactForm),
-    newsletter: Boolean(input.newsletter),
-    userLogin: Boolean(input.userLogin),
-    roleBasedAccess: Boolean(input.roleBasedAccess),
-    crudApiCount: Number(input.crudApiCount) || 0,
-    adminScreenCount: Number(input.adminScreenCount) || 0,
-    adminDashboardBundle: Boolean(input.adminDashboardBundle),
-    extraDashboardTypes: Number(input.extraDashboardTypes) || 0,
-    blogCmsBundle: Boolean(input.blogCmsBundle),
-    imageKitIntegration: Boolean(input.imageKitIntegration),
-    serverSearchPagination: Boolean(input.serverSearchPagination),
-    globalStateManagement: Boolean(input.globalStateManagement),
-    thirdPartyApiCount: Number(input.thirdPartyApiCount) || 0,
-    emailTemplates: Boolean(input.emailTemplates),
-    bookingSystem: Boolean(input.bookingSystem),
-    paymentGateway: Boolean(input.paymentGateway),
-    securityHardening: Boolean(input.securityHardening),
-    apiDocumentation: Boolean(input.apiDocumentation),
-    nextjsSeo: Boolean(input.nextjsSeo),
-    speedOptimization: Boolean(input.speedOptimization),
-    analyticsSetup: Boolean(input.analyticsSetup),
-    cookieBanner: Boolean(input.cookieBanner),
-    whatsappChatWidget: Boolean(input.whatsappChatWidget),
-    googleMapsEmbed: Boolean(input.googleMapsEmbed),
-    mediaLightboxGallery: Boolean(input.mediaLightboxGallery),
-    reviewsTestimonials: Boolean(input.reviewsTestimonials),
-    pdfDownloadables: Boolean(input.pdfDownloadables),
-    socialMediaIntegration: Boolean(input.socialMediaIntegration),
-    liveChatChatbot: Boolean(input.liveChatChatbot),
-    customCalculatorTool: Boolean(input.customCalculatorTool),
-    multiStepQuizFunnel: Boolean(input.multiStepQuizFunnel),
-    couponDiscountSystem: Boolean(input.couponDiscountSystem),
-    pdfGeneratorSystem: Boolean(input.pdfGeneratorSystem),
-    orderStatusTracking: Boolean(input.orderStatusTracking),
-    eventTicketingQr: Boolean(input.eventTicketingQr),
-    customMediaPlayer: Boolean(input.customMediaPlayer),
-    rushDelivery: Boolean(input.rushDelivery),
-    extraHourlyWorkHours: Number(input.extraHourlyWorkHours) || 0,
+    extraSectionsStatic: Number(input?.extraSectionsStatic) || 0,
+    extraSectionsAdvanced: Number(input?.extraSectionsAdvanced) || 0,
+    dynamicTemplates: Number(input?.dynamicTemplates) || 0,
+    extraDynamicItems10x: Number(input?.extraDynamicItems10x) || 0,
+    multiLanguageSetup: Boolean(input?.multiLanguageSetup),
+    extraLanguages: Number(input?.extraLanguages) || 0,
+    rtlSurcharge: Boolean(input?.rtlSurcharge),
+    basicFunctionalityPages: Number(input?.basicFunctionalityPages) || 0,
+    animationTier: is3DTier
+      ? 'ADVANCED'
+      : rawMotion === '' || rawMotion === 'NONE'
+      ? 'NONE'
+      : rawMotion,
+    animationPages: Number(input?.animationPages) || rawPages,
+    darkLightSwitch: Boolean(input?.darkLightSwitch),
+    pageTransitions: Boolean(input?.pageTransitions),
+    customCursor: Boolean(input?.customCursor),
+    preloader: Boolean(input?.preloader),
+    webglScenes: is3DTier
+      ? Math.max(1, Number(input?.webglScenes) || 1)
+      : Number(input?.webglScenes) || 0,
+    customShader: Boolean(input?.customShader),
+    scrollLinkedCamera: Boolean(input?.scrollLinkedCamera),
+    mobileFallbackTuning: Boolean(input?.mobileFallbackTuning),
+    modelIntegrationTier: input?.modelIntegrationTier || 'NONE',
+    modelOptimizationTier: input?.modelOptimizationTier || 'NONE',
+    contactForm: Boolean(input?.contactForm),
+    newsletter: Boolean(input?.newsletter),
+    userLogin: Boolean(input?.userLogin),
+    roleBasedAccess: Boolean(input?.roleBasedAccess),
+    crudApiCount: Number(input?.crudApiCount) || 0,
+    adminScreenCount: Number(input?.adminScreenCount) || 0,
+    adminDashboardBundle: Boolean(input?.adminDashboardBundle),
+    extraDashboardTypes: Number(input?.extraDashboardTypes) || 0,
+    blogCmsBundle: Boolean(input?.blogCmsBundle),
+    imageKitIntegration: Boolean(input?.imageKitIntegration),
+    serverSearchPagination: Boolean(input?.serverSearchPagination),
+    globalStateManagement: Boolean(input?.globalStateManagement),
+    thirdPartyApiCount: Number(input?.thirdPartyApiCount) || 0,
+    emailTemplates: Boolean(input?.emailTemplates),
+    bookingSystem: Boolean(input?.bookingSystem),
+    paymentGateway: Boolean(input?.paymentGateway),
+    securityHardening: Boolean(input?.securityHardening),
+    apiDocumentation: Boolean(input?.apiDocumentation),
+    nextjsSeo: Boolean(input?.nextjsSeo),
+    speedOptimization: Boolean(input?.speedOptimization),
+    analyticsSetup: Boolean(input?.analyticsSetup),
+    cookieBanner: Boolean(input?.cookieBanner),
+    whatsappChatWidget: Boolean(input?.whatsappChatWidget),
+    googleMapsEmbed: Boolean(input?.googleMapsEmbed),
+    mediaLightboxGallery: Boolean(input?.mediaLightboxGallery),
+    reviewsTestimonials: Boolean(input?.reviewsTestimonials),
+    pdfDownloadables: Boolean(input?.pdfDownloadables),
+    socialMediaIntegration: Boolean(input?.socialMediaIntegration),
+    liveChatChatbot: Boolean(input?.liveChatChatbot),
+    customCalculatorTool: Boolean(input?.customCalculatorTool),
+    multiStepQuizFunnel: Boolean(input?.multiStepQuizFunnel),
+    couponDiscountSystem: Boolean(input?.couponDiscountSystem),
+    pdfGeneratorSystem: Boolean(input?.pdfGeneratorSystem),
+    orderStatusTracking: Boolean(input?.orderStatusTracking),
+    eventTicketingQr: Boolean(input?.eventTicketingQr),
+    customMediaPlayer: Boolean(input?.customMediaPlayer),
+    rushDelivery: Boolean(input?.rushDelivery),
+    extraHourlyWorkHours: Number(input?.extraHourlyWorkHours) || 0,
     hostingSetup: 'NONE',
     domainDnsSsl: false,
-    paymentMethod: input.paymentMethod || 'STANDARD',
-    isAdminComplexOverride: Boolean(input.isAdminComplexOverride),
+    paymentMethod: input?.paymentMethod || 'STANDARD',
+    isAdminComplexOverride: Boolean(input?.isAdminComplexOverride),
   };
 
   if (base.isAdminComplexOverride) {
@@ -156,53 +162,89 @@ export function inferComplexConfigFromSimple(input: any): ComplexQuoteConfig {
   }
 
   const effectivePagesForFeatures = Math.max(1, rawPages);
-  const tags: string[] = Array.isArray(input.selectedTags) ? input.selectedTags : [];
+  const tags: string[] = Array.isArray(input?.selectedTags) ? input.selectedTags : [];
+  const hasTag = (...candidates: string[]) => candidates.some((c) => tags.includes(c));
 
   if (tags.length > 0) {
-    base.contactForm = tags.includes('Contact & Enquiry Form');
-    base.newsletter = tags.includes('Newsletter Email Capture');
-    base.userLogin = tags.includes('User Login & Member Accounts');
-    base.roleBasedAccess = tags.includes('Role-Based Staff / Admin Access');
-    base.adminDashboardBundle = tags.includes('Private Admin Control Panel');
-    base.blogCmsBundle = tags.includes('Blog / Article Publishing CMS');
-    base.globalStateManagement = tags.includes('Shopping Cart & Wishlist Memory');
-    base.paymentGateway = tags.includes('Online Payment Checkout (UPI/Stripe/PayPal)');
-    base.bookingSystem = tags.includes('Appointment & Slot Booking System');
-    base.serverSearchPagination = tags.includes('Fast Database Search & Category Filters');
-    base.multiLanguageSetup = tags.includes('Multi-Language Website Switcher');
-    base.rtlSurcharge = tags.includes('Right-to-Left (RTL) Language Support');
-    base.emailTemplates = tags.includes('Automated Confirmation Emails');
-    base.thirdPartyApiCount = tags.includes('WhatsApp / CRM / Google Maps Integration') ? 1 : 0;
-    base.nextjsSeo = tags.includes('Advanced Google SEO & Sitemaps');
-    base.speedOptimization = tags.includes('Core Web Vitals & Speed Optimization');
-    base.analyticsSetup = tags.includes('Visitor Traffic Analytics');
-    base.cookieBanner = tags.includes('Cookie Consent & Privacy Banner');
-    base.darkLightSwitch = tags.includes('Dark / Light Theme Mode Switcher');
-    base.pageTransitions = tags.includes('Smooth Page-to-Page Transitions');
-    base.customCursor = tags.includes('Custom Magnetic / Interactive Cursor');
-    base.preloader = tags.includes('Animated Brand Intro Preloader');
-    base.imageKitIntegration = tags.includes('Cloud Media & Image Auto-Optimization');
-    base.securityHardening = tags.includes('Advanced Backend Security & Rate-Limiting');
-    base.apiDocumentation = tags.includes('Written Backend API Documentation');
-    if (tags.includes('Dynamic Product / Project Catalog Pages')) {
+    base.contactForm = hasTag('Contact & Enquiry Form');
+    base.newsletter = hasTag('Newsletter Email Capture');
+    base.userLogin = hasTag('User Login & Member Accounts');
+    base.roleBasedAccess = hasTag('Role-Based Staff / Admin Access');
+    base.adminDashboardBundle = hasTag('Private Admin Control Panel');
+    base.blogCmsBundle = hasTag('Blog / Article Publishing CMS');
+    base.globalStateManagement = hasTag(
+      'Shopping Cart & Wishlist',
+      'Shopping Cart & Wishlist Memory'
+    );
+    base.paymentGateway = hasTag('Online Payment Checkout (UPI/Stripe/PayPal)');
+    base.bookingSystem = hasTag('Appointment & Slot Booking System');
+    base.serverSearchPagination = hasTag(
+      'Search & Category Filters',
+      'Fast Database Search & Category Filters'
+    );
+    base.multiLanguageSetup = hasTag('Multi-Language Website Switcher');
+    base.rtlSurcharge = hasTag('Right-to-Left (RTL) Language Support');
+    base.emailTemplates = hasTag(
+      'Automated Email Notifications',
+      'Automated Confirmation Emails'
+    );
+    base.thirdPartyApiCount = hasTag('WhatsApp / CRM / Google Maps Integration') ? 1 : 0;
+    base.nextjsSeo = hasTag(
+      'Google SEO & Analytics Setup',
+      'Advanced Google SEO & Sitemaps'
+    );
+    base.speedOptimization = hasTag('Core Web Vitals & Speed Optimization');
+    base.analyticsSetup = hasTag(
+      'Google SEO & Analytics Setup',
+      'Visitor Traffic Analytics'
+    );
+    base.cookieBanner = hasTag('Cookie Consent & Privacy Banner');
+    base.darkLightSwitch = hasTag(
+      'Dark / Light Theme Switcher',
+      'Dark / Light Theme Mode Switcher'
+    );
+    base.pageTransitions = hasTag('Smooth Page-to-Page Transitions');
+    base.customCursor = hasTag('Custom Magnetic / Interactive Cursor');
+    base.preloader = hasTag('Animated Brand Intro Preloader');
+    base.imageKitIntegration = hasTag('Cloud Media & Image Auto-Optimization');
+    base.securityHardening = hasTag('Advanced Backend Security & Rate-Limiting');
+    base.apiDocumentation = hasTag('Written Backend API Documentation');
+    if (
+      hasTag(
+        'Dynamic Product / Project Catalog',
+        'Dynamic Product / Project Catalog Pages'
+      )
+    ) {
       base.dynamicTemplates = Math.max(1, base.dynamicTemplates);
     }
-    base.whatsappChatWidget = tags.includes('WhatsApp Direct Chat / Quick Inquiry Button');
-    base.googleMapsEmbed = tags.includes('Google Maps Location & Store Embed');
-    base.mediaLightboxGallery = tags.includes('Image / Video Lightbox Gallery & Sliders');
-    base.reviewsTestimonials = tags.includes('Customer Reviews, Star Ratings & Testimonials');
-    base.pdfDownloadables = tags.includes('Downloadable PDF Brochures / Menus / Catalogs');
-    base.socialMediaIntegration = tags.includes('Social Media Feed & Share Integration');
-    base.liveChatChatbot = tags.includes('Live Chat / AI Chatbot Assistant');
-    base.customCalculatorTool = tags.includes('Custom Price, EMI or ROI Calculator');
-    base.multiStepQuizFunnel = tags.includes('Multi-Step Quiz, Assessment or Lead Funnel');
-    base.couponDiscountSystem = tags.includes('Coupon Codes, Promo Discounts & Offers');
-    base.pdfGeneratorSystem = tags.includes('PDF Invoice / Receipt / Certificate Generator');
-    base.orderStatusTracking = tags.includes('Order Tracking / Application Status Lookup');
-    base.eventTicketingQr = tags.includes('Event Countdown & QR Ticket / Pass System');
-    base.customMediaPlayer = tags.includes('Audio / Video Streaming & Custom Media Player');
+    base.whatsappChatWidget = hasTag(
+      'WhatsApp Integration',
+      'WhatsApp Direct Chat / Quick Inquiry Button'
+    );
+    base.googleMapsEmbed = hasTag(
+      'Google Maps Location Embed',
+      'Google Maps Location & Store Embed'
+    );
+    base.mediaLightboxGallery = hasTag(
+      'Image / Video Gallery & Sliders',
+      'Image / Video Lightbox Gallery & Sliders'
+    );
+    base.reviewsTestimonials = hasTag(
+      'Customer Reviews & Testimonials',
+      'Customer Reviews, Star Ratings & Testimonials'
+    );
+    base.pdfDownloadables = hasTag('Downloadable PDF Brochures / Menus / Catalogs');
+    base.socialMediaIntegration = hasTag('Social Media Feed & Share Integration');
+    base.liveChatChatbot = hasTag('Live Chat / AI Chatbot Assistant');
+    base.customCalculatorTool = hasTag('Custom Price, EMI or ROI Calculator');
+    base.multiStepQuizFunnel = hasTag('Multi-Step Quiz, Assessment or Lead Funnel');
+    base.couponDiscountSystem = hasTag('Coupon Codes, Promo Discounts & Offers');
+    base.pdfGeneratorSystem = hasTag('PDF Invoice / Receipt / Certificate Generator');
+    base.orderStatusTracking = hasTag('Order Tracking / Application Status Lookup');
+    base.eventTicketingQr = hasTag('Event Countdown & QR Ticket / Pass System');
+    base.customMediaPlayer = hasTag('Audio / Video Streaming & Custom Media Player');
 
-    base.basicFunctionalityPages = tags.includes('Interactive Tabs, Accordions & Pop-up Modals')
+    base.basicFunctionalityPages = hasTag('Interactive Tabs, Accordions & Pop-up Modals')
       ? effectivePagesForFeatures
       : 0;
   }
@@ -210,16 +252,21 @@ export function inferComplexConfigFromSimple(input: any): ComplexQuoteConfig {
   return base;
 }
 
-export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Record<string, any>, masterConfig?: any) {
-  const req = inferComplexConfigFromSimple(rawInput);
-  const region: Region = req.region;
+export function evaluateProjectQuote(
+  rawInput: Partial<ComplexQuoteConfig> & Record<string, any>,
+  masterConfig?: any
+) {
+  const req = inferComplexConfigFromSimple(rawInput || {});
+  const region: Region = req.region === 'INTL' ? 'INTL' : 'INDIA';
   const currencySymbol = region === 'INDIA' ? '₹' : '$';
   const mult = Number(masterConfig?.globalMultiplier || 1.0);
   const rates = masterConfig?.rates || {};
 
   const getRate = (key: string, defaultInr: number, defaultUsd: number) => {
-    const item = rates[key] || { inr: defaultInr, usd: defaultUsd };
-    const raw = region === 'INDIA' ? item.inr : item.usd;
+    const item = rates?.[key];
+    const inrVal = typeof item?.inr === 'number' ? item.inr : defaultInr;
+    const usdVal = typeof item?.usd === 'number' ? item.usd : defaultUsd;
+    const raw = region === 'INDIA' ? inrVal : usdVal;
     return Math.round(raw * mult);
   };
 
@@ -432,7 +479,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.whatsappChatWidget) {
     items.push({
       id: 'whatsappChatWidget',
-      label: 'WhatsApp Direct Chat / Quick Inquiry Button',
+      label: 'WhatsApp Integration / Quick Inquiry Button',
       category: 'FEATURES',
       cost: getRate('whatsappChatWidget', 880, 12),
       daysMin: 0.25,
@@ -443,7 +490,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.googleMapsEmbed) {
     items.push({
       id: 'googleMapsEmbed',
-      label: 'Google Maps Location & Store Embed',
+      label: 'Google Maps Location Embed',
       category: 'FEATURES',
       cost: getRate('googleMapsEmbed', 880, 12),
       daysMin: 0.25,
@@ -454,7 +501,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.mediaLightboxGallery) {
     items.push({
       id: 'mediaLightboxGallery',
-      label: 'Image / Video Lightbox Gallery & Sliders',
+      label: 'Image / Video Gallery & Sliders',
       category: 'FEATURES',
       cost: getRate('mediaLightboxGallery', 1375, 19),
       daysMin: 0.5,
@@ -465,7 +512,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.reviewsTestimonials) {
     items.push({
       id: 'reviewsTestimonials',
-      label: 'Customer Reviews, Star Ratings & Testimonials',
+      label: 'Customer Reviews & Testimonials',
       category: 'FEATURES',
       cost: getRate('reviewsTestimonials', 1650, 23),
       daysMin: 0.5,
@@ -633,7 +680,9 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
     useAdminBundle = true;
     crudCount -= 3;
     adminCount -= 3;
-    autoAdjustments.push('Consolidated Login + 3 CRUD + 3 Admin Screens into Admin Dashboard Bundle.');
+    autoAdjustments.push(
+      'Consolidated Login + 3 CRUD + 3 Admin Screens into Admin Dashboard Bundle.'
+    );
   }
 
   if (useAdminBundle) {
@@ -763,7 +812,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.globalStateManagement) {
     items.push({
       id: 'globalStateManagement',
-      label: 'Global State Memory (Redux / Zustand)',
+      label: 'Shopping Cart & Wishlist State Memory',
       category: 'BACKEND',
       cost: getRate('globalState', 3300, 46),
       daysMin: 1,
@@ -785,7 +834,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.emailTemplates) {
     items.push({
       id: 'emailTemplates',
-      label: 'Automated Branded HTML Email Templates',
+      label: 'Automated Branded HTML Email Notifications',
       category: 'BACKEND',
       cost: getRate('emailTemplates', 1650, 23),
       daysMin: 0.5,
@@ -899,7 +948,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.nextjsSeo) {
     items.push({
       id: 'nextjsSeo',
-      label: 'Advanced Next.js SEO Setup',
+      label: 'Advanced Google SEO & Sitemaps Setup',
       category: 'EXTRAS',
       cost: getRate('nextjsSeo', 3850, 54),
       daysMin: 1,
@@ -921,7 +970,7 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   if (req.analyticsSetup) {
     items.push({
       id: 'analyticsSetup',
-      label: 'Analytics Setup',
+      label: 'Visitor Traffic Analytics Setup',
       category: 'EXTRAS',
       cost: getRate('analyticsSetup', 880, 12),
       daysMin: 0.25,
@@ -1007,19 +1056,19 @@ export function evaluateProjectQuote(rawInput: Partial<ComplexQuoteConfig> & Rec
   let popupMessage = '';
 
   if (grandTotal === 0 && budget === 0) {
-    popupMessage = 'Select your project needs to submit your brief.';
+    popupMessage = 'Select options to evaluate project quote.';
   } else if (budget > 0) {
     if (isOverBudget) {
       popupStatus = 'OVER_BUDGET';
-      popupMessage = `Budget Alert: Total (${currencySymbol}${grandTotal.toLocaleString()}) crosses your ${currencySymbol}${budget.toLocaleString()} budget by ${currencySymbol}${Math.abs(budgetRemaining).toLocaleString()}.`;
+      popupMessage = `Budget Alert: Total (${currencySymbol}${grandTotal.toLocaleString()}) crosses client's ${currencySymbol}${budget.toLocaleString()} budget by ${currencySymbol}${Math.abs(budgetRemaining).toLocaleString()}.`;
     } else if (budgetRemaining <= budget * 0.15) {
       popupStatus = 'NEAR_LIMIT';
-      popupMessage = `Close to Budget: ${currencySymbol}${budgetRemaining.toLocaleString()} left from your ${currencySymbol}${budget.toLocaleString()} budget.`;
+      popupMessage = `Close to Budget: ${currencySymbol}${budgetRemaining.toLocaleString()} left from ${currencySymbol}${budget.toLocaleString()} budget.`;
     } else {
-      popupMessage = `Within Budget: ${currencySymbol}${budgetRemaining.toLocaleString()} left from your ${currencySymbol}${budget.toLocaleString()} budget.`;
+      popupMessage = `Within Budget: ${currencySymbol}${budgetRemaining.toLocaleString()} left from ${currencySymbol}${budget.toLocaleString()} budget.`;
     }
   } else {
-    popupMessage = `Estimate: ${currencySymbol}${grandTotal.toLocaleString()}`;
+    popupMessage = `Calculated Estimate: ${currencySymbol}${grandTotal.toLocaleString()}`;
   }
 
   const exRate = masterConfig?.exchangeRateInrPerUsd || 95.5;

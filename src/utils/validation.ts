@@ -13,7 +13,7 @@ export const INDIA_PHONE_REGEX = /^(?:\+?91[\s-]?)?[6-9]\d{9}$/;
 // 4. Meaningful Text (Business Name, Business Description, Main Goal): Must contain letters, min 3 chars, no <script> tags
 export const SAFE_TEXT_REGEX = /^(?!.*<script)(?=.*[a-zA-Z]).{3,500}$/is;
 
-// 5. URL Regex (Checks that at least one valid http/https URL is provided in Design References)
+// 5. URL Regex (Kept exported for optional URL validation helpers)
 export const URL_EXTRACT_REGEX =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{2,10}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/i;
 
@@ -42,7 +42,7 @@ export function validateClientSubmission(data: {
   const errors: Record<string, string> = {};
   const missingList: string[] = [];
 
-  // Full Name
+  // Tab 01: Full Name (Required)
   if (!data.fullName.trim()) {
     errors.fullName = 'Full Name is required.';
     missingList.push('Full Name (Tab 01)');
@@ -51,7 +51,7 @@ export function validateClientSubmission(data: {
     missingList.push('Valid Full Name (Tab 01)');
   }
 
-  // Email
+  // Tab 01: Email (Required)
   if (!data.email.trim()) {
     errors.email = 'Email Address is required.';
     missingList.push('Email Address (Tab 01)');
@@ -60,7 +60,7 @@ export function validateClientSubmission(data: {
     missingList.push('Valid Email (Tab 01)');
   }
 
-  // Phone / WhatsApp
+  // Tab 01: Phone / WhatsApp (Required)
   const cleanPhone = data.phone.trim();
   const digitsOnly = cleanPhone.replace(/\D/g, '');
   if (!cleanPhone) {
@@ -77,23 +77,21 @@ export function validateClientSubmission(data: {
     missingList.push('Valid Phone Number (Tab 01)');
   }
 
-  // Target Budget
-  if (!data.budget || data.budget <= 0) {
-    errors.budget = 'Target Budget is required.';
-    missingList.push('Target Budget (Tab 01)');
+  // Tab 01: Target Budget (Optional)
+  if (data.budget < 0) {
+    errors.budget = 'Budget cannot be negative.';
+    missingList.push('Valid Budget (Tab 01)');
   }
 
-  // Category & Pages (Starts at 0; client must select a category or custom note, and choose at least 1 page or describe custom page structure)
-  if (!data.projectPurpose && !data.pagesAndTypeNote.trim()) {
-    errors.projectPurpose = 'Select a Website Category or describe your custom type.';
-    missingList.push('Website Category (Tab 02)');
-  }
-  if ((data.pages < 1 && !data.pagesAndTypeNote.trim()) || data.pages > 200) {
-    errors.pages = 'Please select your needed page count (or describe your page structure in the note).';
-    missingList.push('Page Count (Tab 02)');
+  // Tab 02: Page Count is required (must be at least 1 page); Website Category is not forced
+  if (!data.pages || data.pages < 1 || data.pages > 200) {
+    errors.pages = 'Please select the number of pages needed (at least 1 page).';
+    missingList.push('Number of Pages (Tab 02)');
   }
 
-  // Business Name
+  // Tab 03 (Functionality) & Tab 04 (Motion & 3D) are fully optional
+
+  // Tab 05: Business Name (Required)
   if (!data.businessName.trim()) {
     errors.businessName = 'Business Name is required.';
     missingList.push('Business Name (Tab 05)');
@@ -102,7 +100,16 @@ export function validateClientSubmission(data: {
     missingList.push('Valid Business Name (Tab 05)');
   }
 
-  // Description of the Business (Required)
+  // Tab 05: Main Goal (Required)
+  if (!data.mainGoal.trim()) {
+    errors.mainGoal = 'Main Website Goal is required.';
+    missingList.push('Main Goal (Tab 05)');
+  } else if (!SAFE_TEXT_REGEX.test(data.mainGoal.trim())) {
+    errors.mainGoal = 'Describe your main website goal (at least 3 characters).';
+    missingList.push('Valid Main Goal (Tab 05)');
+  }
+
+  // Tab 05: Description of the Business (Required)
   if (!data.businessDescription.trim()) {
     errors.businessDescription = 'Description of the Business is required.';
     missingList.push('Business Description (Tab 05)');
@@ -115,33 +122,7 @@ export function validateClientSubmission(data: {
     missingList.push('Valid Business Description (Tab 05)');
   }
 
-  // Main Goal
-  if (!data.mainGoal.trim()) {
-    errors.mainGoal = 'Main Website Goal is required.';
-    missingList.push('Main Goal (Tab 05)');
-  } else if (!SAFE_TEXT_REGEX.test(data.mainGoal.trim())) {
-    errors.mainGoal = 'Describe your main website goal (at least 3 characters).';
-    missingList.push('Valid Main Goal (Tab 05)');
-  }
-
-  // Ideal Launch Date & Reason
-  if (!data.launchDateReason.trim()) {
-    errors.launchDateReason = 'Ideal Launch Date & Reason is required.';
-    missingList.push('Launch Date & Reason (Tab 05)');
-  } else if (data.launchDateReason.trim().length < 3) {
-    errors.launchDateReason = 'Enter a valid launch date and reason.';
-    missingList.push('Valid Launch Date (Tab 05)');
-  }
-
-  // Design References (Must contain at least 1 valid http:// or https:// link)
-  if (!data.designReferences.trim()) {
-    errors.designReferences = 'Provide a Figma link or reference website URLs.';
-    missingList.push('Reference URLs (Tab 05)');
-  } else if (!URL_EXTRACT_REGEX.test(data.designReferences.trim())) {
-    errors.designReferences =
-      'Include at least one valid URL starting with https:// or http:// (e.g. https://example.com).';
-    missingList.push('Valid Reference URL https://... (Tab 05)');
-  }
+  // All other Tab 05 fields (Ideal Launch Date, Rush Delivery, Design References, Extra Note, Files) are optional
 
   return {
     isValid: missingList.length === 0,

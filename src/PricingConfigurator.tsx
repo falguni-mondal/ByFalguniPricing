@@ -1,7 +1,7 @@
 // frontend/src/PricingConfigurator.tsx
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { LiquidGlassFilterSVG } from './components/LiquidGlass';
-import { COUNTRIES, type CountryOption } from './constants/pricingData';
+import { COUNTRIES, type CountryOption, type WebsiteTypeOption } from './constants/pricingData';
 import { StickyNavbar } from './components/StickyNavbar';
 import { StepTabsNav, PRICING_TABS } from './components/StepTabsNav';
 import { CountryRegionCard } from './components/CountryRegionCard';
@@ -17,6 +17,23 @@ import { evaluateProjectQuote } from './utils/localPricingEngine';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
+function resolveTabFromLocation(): number {
+  if (typeof window === 'undefined') return 1;
+  const rawHash = window.location.hash.replace(/^#\/?/, '').toLowerCase().trim();
+  if (!rawHash) return 1;
+
+  const exactMatch = PRICING_TABS.find(
+    (t) => t.slug.toLowerCase() === rawHash || String(t.id) === rawHash
+  );
+  if (exactMatch) return exactMatch.id;
+
+  if (rawHash.includes('page') || rawHash.includes('categor')) return 2;
+  if (rawHash.includes('func') || rawHash.includes('feature')) return 3;
+  if (rawHash.includes('motion') || rawHash.includes('3d')) return 4;
+  if (rawHash.includes('brief') || rawHash.includes('submit')) return 5;
+  return 1;
+}
+
 export default function PricingConfigurator() {
   // Default to Dark Mode initially with zero flash of light theme
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -27,7 +44,9 @@ export default function PricingConfigurator() {
       return true;
     }
   });
-  const [activeTab, setActiveTab] = useState<number>(1);
+
+  // URL-routed active tab state
+  const [activeTab, setActiveTab] = useState<number>(() => resolveTabFromLocation());
   const cardTopRef = useRef<HTMLDivElement>(null);
 
   const [selectedCountry, setSelectedCountry] = useState<CountryOption>(COUNTRIES[0]);
@@ -54,13 +73,13 @@ export default function PricingConfigurator() {
     briefExtraNote: '',
   });
 
-  // Initial State: Starts at 0 pages, 0 budget, no category or services selected yet
+  // Initial State: Starts at 0 pages, 0 budget, no category, no motion tier, no features pre-selected
   const [simpleChoices, setSimpleChoices] = useState({
     region: 'INDIA' as 'INDIA' | 'INTL',
     budget: 0,
     pages: 0,
     projectPurpose: '',
-    animationTier: 'NONE' as MotionTier,
+    animationTier: '' as MotionTier,
     webglScenes: 0,
     rushDelivery: false,
   });
@@ -79,6 +98,28 @@ export default function PricingConfigurator() {
     }
   }, [darkMode]);
 
+  // Sync URL hash route on initial mount and browser Back/Forward navigation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!window.location.hash) {
+      const initialTabObj = PRICING_TABS.find((t) => t.id === activeTab) || PRICING_TABS[0];
+      window.history.replaceState(null, '', `#/${initialTabObj.slug}`);
+    }
+
+    const handleRouteChange = () => {
+      const nextTab = resolveTabFromLocation();
+      setActiveTab(nextTab);
+      setSubmitError('');
+    };
+
+    window.addEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handleRouteChange);
+    return () => {
+      window.removeEventListener('hashchange', handleRouteChange);
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
+
   // Fetch master pricing config once in the background so local calculation is 100% instantaneous (0ms lag)
   useEffect(() => {
     const controller = new AbortController();
@@ -91,39 +132,63 @@ export default function PricingConfigurator() {
     return () => controller.abort();
   }, []);
 
-  const toggleTheme = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('byf-pricing-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('byf-pricing-theme', 'light');
-    }
-  };
+  const toggleTheme = useCallback(() => {
+    setDarkMode((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('byf-pricing-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('byf-pricing-theme', 'light');
+      }
+      return next;
+    });
+  }, []);
 
-  // Run full Regex validation across all fields
-  const validation = validateClientSubmission({
-    fullName,
-    email,
-    phone,
-    countryCode: selectedCountry.code,
-    budget: simpleChoices.budget,
-    region: simpleChoices.region,
-    projectPurpose: simpleChoices.projectPurpose,
-    pagesAndTypeNote: customSectionNotes.pagesAndTypeNote,
-    pages: simpleChoices.pages,
-    businessName,
-    businessDescription,
-    mainGoal,
-    launchDateReason,
-    designReferences,
-  });
+  // Memoize validation so it only runs when relevant inputs change
+  const validation = useMemo(
+    () =>
+      validateClientSubmission({
+        fullName,
+        email,
+        phone,
+        countryCode: selectedCountry.code,
+        budget: simpleChoices.budget,
+        region: simpleChoices.region,
+        projectPurpose: simpleChoices.projectPurpose,
+        pagesAndTypeNote: customSectionNotes.pagesAndTypeNote,
+        pages: simpleChoices.pages,
+        businessName,
+        businessDescription,
+        mainGoal,
+        launchDateReason,
+        designReferences,
+      }),
+    [
+      fullName,
+      email,
+      phone,
+      selectedCountry.code,
+      simpleChoices.budget,
+      simpleChoices.region,
+      simpleChoices.projectPurpose,
+      customSectionNotes.pagesAndTypeNote,
+      simpleChoices.pages,
+      businessName,
+      businessDescription,
+      mainGoal,
+      launchDateReason,
+      designReferences,
+    ]
+  );
 
   const allRequiredFilled = validation.isValid;
   const missingFields = validation.missingList;
-  const emailPhoneCombined = [email.trim(), phone.trim()].filter(Boolean).join(' | ');
+  const emailPhoneCombined = useMemo(
+    () => [email.trim(), phone.trim()].filter(Boolean).join(' | '),
+    [email, phone]
+  );
 
   useEffect(() => {
     if (!allRequiredFilled && agreementAccepted) {
@@ -131,7 +196,7 @@ export default function PricingConfigurator() {
     }
   }, [allRequiredFilled, agreementAccepted]);
 
-  const handleToggleAgreement = () => {
+  const handleToggleAgreement = useCallback(() => {
     if (!allRequiredFilled) {
       setSubmitError(
         `Please complete and validate all required fields first: ${missingFields.join(', ')}`
@@ -140,36 +205,114 @@ export default function PricingConfigurator() {
     }
     setSubmitError('');
     setAgreementAccepted((prev) => !prev);
-  };
+  }, [allRequiredFilled, missingFields]);
 
-  const goToTab = (tabNumber: number) => {
+  const goToTab = useCallback((tabNumber: number) => {
     const clamped = Math.max(1, Math.min(PRICING_TABS.length, tabNumber));
+    const targetTabObj = PRICING_TABS.find((t) => t.id === clamped) || PRICING_TABS[0];
+    const targetHash = `#/${targetTabObj.slug}`;
+    if (typeof window !== 'undefined' && window.location.hash !== targetHash) {
+      window.history.pushState(null, '', targetHash);
+    }
     setActiveTab(clamped);
     setSubmitError('');
     if (cardTopRef.current) {
       const y = cardTopRef.current.getBoundingClientRect().top + window.scrollY - 90;
       window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }
-  };
+  }, []);
 
-  const handleSelectCountry = (c: CountryOption) => {
+  const handleSelectCountry = useCallback((c: CountryOption) => {
     setSelectedCountry(c);
     const nextRegion = c.code === 'IN' ? 'INDIA' : 'INTL';
     setSimpleChoices((prev) => ({
       ...prev,
       region: nextRegion,
     }));
-  };
+  }, []);
+
+  const handleChangeBudget = useCallback((budget: number) => {
+    setSimpleChoices((p) => ({ ...p, budget }));
+  }, []);
+
+  // Clicking an already-selected category unselects it
+  const handleSelectWebsiteType = useCallback((t: WebsiteTypeOption) => {
+    setSimpleChoices((p) => ({
+      ...p,
+      projectPurpose: p.projectPurpose === t.id ? '' : t.id,
+    }));
+  }, []);
+
+  const handleChangePages = useCallback((pages: number) => {
+    setSimpleChoices((p) => ({ ...p, pages }));
+  }, []);
+
+  const handlePagesNoteChange = useCallback((pagesAndTypeNote: string) => {
+    setCustomSectionNotes((p) => ({ ...p, pagesAndTypeNote }));
+  }, []);
+
+  const handleToggleTag = useCallback((tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  }, []);
+
+  // Single-click toggle for all recommended features in Tab 3
+  const handleToggleRecommendedTags = useCallback((recTags: string[]) => {
+    setSelectedTags((prev) => {
+      const allPresent = recTags.length > 0 && recTags.every((t) => prev.includes(t));
+      if (allPresent) {
+        return prev.filter((t) => !recTags.includes(t));
+      }
+      return Array.from(new Set([...prev, ...recTags]));
+    });
+  }, []);
+
+  const handleFunctionalityNoteChange = useCallback((functionalityNote: string) => {
+    setCustomSectionNotes((p) => ({ ...p, functionalityNote }));
+  }, []);
+
+  const handleSelectMotionTier = useCallback((animationTier: MotionTier) => {
+    setSimpleChoices((p) => ({
+      ...p,
+      animationTier,
+      webglScenes: animationTier === 'WEBGL_3D' ? 1 : 0,
+    }));
+  }, []);
+
+  const handleMotionNoteChange = useCallback((motionAndFeelNote: string) => {
+    setCustomSectionNotes((p) => ({ ...p, motionAndFeelNote }));
+  }, []);
+
+  const handleToggleRush = useCallback(() => {
+    setSimpleChoices((p) => ({ ...p, rushDelivery: !p.rushDelivery }));
+  }, []);
+
+  const handleBriefExtraNoteChange = useCallback((briefExtraNote: string) => {
+    setCustomSectionNotes((p) => ({ ...p, briefExtraNote }));
+  }, []);
+
+  const handleOpenAgreementModal = useCallback(() => {
+    setShowAgreementModal(true);
+  }, []);
+
+  const handleCloseAgreementModal = useCallback(() => {
+    setShowAgreementModal(false);
+  }, []);
 
   // Only combine the client's actual custom written notes
-  const combinedCustomNotesOnly = [
-    customSectionNotes.pagesAndTypeNote.trim(),
-    customSectionNotes.functionalityNote.trim(),
-    customSectionNotes.motionAndFeelNote.trim(),
-    customSectionNotes.briefExtraNote.trim(),
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const combinedCustomNotesOnly = useMemo(
+    () =>
+      [
+        customSectionNotes.pagesAndTypeNote.trim(),
+        customSectionNotes.functionalityNote.trim(),
+        customSectionNotes.motionAndFeelNote.trim(),
+        customSectionNotes.briefExtraNote.trim(),
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    [customSectionNotes]
+  );
 
   // Instantaneous 0ms calculation in memory (hidden from frontend UI, sent to Admin Panel on submit)
   const quote = useMemo(() => {
@@ -221,8 +364,8 @@ export default function PricingConfigurator() {
         budget: simpleChoices.budget,
         grandTotal: Number(quote?.grandTotal || 0),
         pages: simpleChoices.pages,
-        projectPurpose: simpleChoices.projectPurpose || 'Custom',
-        animationTier: simpleChoices.animationTier,
+        projectPurpose: simpleChoices.projectPurpose || '',
+        animationTier: simpleChoices.animationTier || '',
         rushDelivery: simpleChoices.rushDelivery,
         mainGoal: mainGoal.trim(),
         launchDateReason: launchDateReason.trim(),
@@ -347,7 +490,7 @@ export default function PricingConfigurator() {
               selectedCountry={selectedCountry}
               onSelectCountry={handleSelectCountry}
               budget={simpleChoices.budget}
-              onChangeBudget={(budget) => setSimpleChoices((p) => ({ ...p, budget }))}
+              onChangeBudget={handleChangeBudget}
               sym={sym}
               fieldErrors={validation.errors}
             />
@@ -357,18 +500,11 @@ export default function PricingConfigurator() {
             <WebsiteCategoryCard
               projectPurpose={simpleChoices.projectPurpose}
               pages={simpleChoices.pages}
-              onSelectWebsiteType={(t) => {
-                // Only set the selected category; do NOT auto-select services or overwrite page count
-                setSimpleChoices((p) => ({
-                  ...p,
-                  projectPurpose: t.id,
-                }));
-              }}
-              onChangePages={(pages) => setSimpleChoices((p) => ({ ...p, pages }))}
+              onSelectWebsiteType={handleSelectWebsiteType}
+              onChangePages={handleChangePages}
               note={customSectionNotes.pagesAndTypeNote}
-              onChangeNote={(pagesAndTypeNote) =>
-                setCustomSectionNotes((p) => ({ ...p, pagesAndTypeNote }))
-              }
+              onChangeNote={handlePagesNoteChange}
+              pageError={validation.errors.pages}
             />
           )}
 
@@ -376,32 +512,19 @@ export default function PricingConfigurator() {
             <FunctionalityCard
               projectPurpose={simpleChoices.projectPurpose}
               selectedTags={selectedTags}
-              onToggleTag={(tag) =>
-                setSelectedTags((prev) =>
-                  prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-                )
-              }
+              onToggleTag={handleToggleTag}
+              onToggleRecommendedTags={handleToggleRecommendedTags}
               note={customSectionNotes.functionalityNote}
-              onChangeNote={(functionalityNote) =>
-                setCustomSectionNotes((p) => ({ ...p, functionalityNote }))
-              }
+              onChangeNote={handleFunctionalityNoteChange}
             />
           )}
 
           {activeTab === 4 && (
             <MotionExperienceCard
               animationTier={simpleChoices.animationTier}
-              onSelectTier={(animationTier) =>
-                setSimpleChoices((p) => ({
-                  ...p,
-                  animationTier,
-                  webglScenes: animationTier === 'WEBGL_3D' ? 1 : 0,
-                }))
-              }
+              onSelectTier={handleSelectMotionTier}
               note={customSectionNotes.motionAndFeelNote}
-              onChangeNote={(motionAndFeelNote) =>
-                setCustomSectionNotes((p) => ({ ...p, motionAndFeelNote }))
-              }
+              onChangeNote={handleMotionNoteChange}
             />
           )}
 
@@ -416,21 +539,17 @@ export default function PricingConfigurator() {
               launchDateReason={launchDateReason}
               setLaunchDateReason={setLaunchDateReason}
               rushDelivery={simpleChoices.rushDelivery}
-              onToggleRush={() =>
-                setSimpleChoices((p) => ({ ...p, rushDelivery: !p.rushDelivery }))
-              }
+              onToggleRush={handleToggleRush}
               designReferences={designReferences}
               setDesignReferences={setDesignReferences}
               extraNote={customSectionNotes.briefExtraNote}
-              setExtraNote={(briefExtraNote) =>
-                setCustomSectionNotes((p) => ({ ...p, briefExtraNote }))
-              }
+              setExtraNote={handleBriefExtraNoteChange}
               pendingFiles={pendingFiles}
               onFilesChange={setPendingFiles}
               uploadProgress={uploadProgress}
               agreementAccepted={agreementAccepted}
               onToggleAgreement={handleToggleAgreement}
-              onOpenAgreementModal={() => setShowAgreementModal(true)}
+              onOpenAgreementModal={handleOpenAgreementModal}
               allRequiredFilled={allRequiredFilled}
               missingFields={missingFields}
               fieldErrors={validation.errors}
@@ -470,31 +589,33 @@ export default function PricingConfigurator() {
         </div>
       </main>
 
-      <AgreementModal
-        isOpen={showAgreementModal}
-        onClose={() => setShowAgreementModal(false)}
-        fullName={fullName}
-        emailPhone={emailPhoneCombined}
-        businessName={businessName}
-        businessDescription={businessDescription}
-        mainGoal={mainGoal}
-        launchDateReason={launchDateReason}
-        designReferences={designReferences}
-        countryName={selectedCountry.name}
-        sym={sym}
-        budget={simpleChoices.budget}
-        projectPurpose={simpleChoices.projectPurpose}
-        pages={simpleChoices.pages}
-        animationTier={simpleChoices.animationTier}
-        rushDelivery={simpleChoices.rushDelivery}
-        selectedTags={selectedTags}
-        customSectionNotes={customSectionNotes}
-        canAccept={allRequiredFilled}
-        onAcceptAndClose={() => {
-          setAgreementAccepted(true);
-          setShowAgreementModal(false);
-        }}
-      />
+      {showAgreementModal && (
+        <AgreementModal
+          isOpen={showAgreementModal}
+          onClose={handleCloseAgreementModal}
+          fullName={fullName}
+          emailPhone={emailPhoneCombined}
+          businessName={businessName}
+          businessDescription={businessDescription}
+          mainGoal={mainGoal}
+          launchDateReason={launchDateReason}
+          designReferences={designReferences}
+          countryName={selectedCountry.name}
+          sym={sym}
+          budget={simpleChoices.budget}
+          projectPurpose={simpleChoices.projectPurpose}
+          pages={simpleChoices.pages}
+          animationTier={simpleChoices.animationTier}
+          rushDelivery={simpleChoices.rushDelivery}
+          selectedTags={selectedTags}
+          customSectionNotes={customSectionNotes}
+          canAccept={allRequiredFilled}
+          onAcceptAndClose={() => {
+            setAgreementAccepted(true);
+            setShowAgreementModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

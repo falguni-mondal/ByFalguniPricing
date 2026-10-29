@@ -1,7 +1,7 @@
 // frontend/src/components/MotionExperienceCard.tsx
-import type { FC } from 'react';
+import { memo, type FC } from 'react';
 
-export type MotionTier = 'NONE' | 'BASIC' | 'ADVANCED' | 'WEBGL_3D';
+export type MotionTier = '' | 'NONE' | 'BASIC' | 'ADVANCED' | 'WEBGL_3D';
 
 interface Props {
   animationTier: MotionTier;
@@ -10,10 +10,10 @@ interface Props {
   onChangeNote: (n: string) => void;
 }
 
-const MOTION_TIERS: { id: MotionTier; badge: string; title: string; desc: string }[] = [
+const MOTION_TIERS: { id: Exclude<MotionTier, ''>; badge: string; title: string; desc: string }[] = [
   {
     id: 'NONE',
-    badge: '1st Tier (Default)',
+    badge: '1st Tier',
     title: 'Completely Static',
     desc: 'Strictly static pages without any animation and without smooth scrolling — no magic, just a clean, top-notch responsive layout.',
   },
@@ -37,54 +37,60 @@ const MOTION_TIERS: { id: MotionTier; badge: string; title: string; desc: string
   },
 ];
 
-export const MotionExperienceCard: FC<Props> = ({
-  animationTier,
-  onSelectTier,
-  note,
-  onChangeNote,
-}) => (
-  <section className="liquid-glass-card relative z-10 space-y-6 rounded-[2rem] p-5 sm:p-10">
-    <div>
-      <span className="text-[11px] font-bold uppercase tracking-widest opacity-50">
-        04 • Motion, Feel & Visual Experience
-      </span>
-      <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
-        How should the website move and feel?
-      </h2>
-    </div>
+export const MotionExperienceCard: FC<Props> = memo(
+  ({ animationTier, onSelectTier, note, onChangeNote }) => (
+    <section className="liquid-glass-card relative z-10 space-y-6 rounded-4xl p-5 sm:p-10">
+      <div>
+        <span className="text-[11px] font-bold uppercase tracking-widest opacity-50">
+          04 • Motion, Feel & Visual Experience
+        </span>
+        <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
+          How should the website move and feel?
+        </h2>
+        <p className="mt-1 text-xs opacity-60">
+          Tap a motion style below to select it, or tap the selected card again to unselect it.
+        </p>
+      </div>
 
-    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-      {MOTION_TIERS.map((m) => {
-        const isSelected = animationTier === m.id;
-        return (
-          <div
-            key={m.id}
-            onClick={() => onSelectTier(m.id)}
-            className={`cursor-pointer rounded-3xl p-5 transition-all ${
-              isSelected ? 'liquid-glass-active' : 'liquid-glass-pill'
-            }`}
-          >
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-75">
-              {m.badge}
-            </span>
-            <div className="mt-1 text-base font-bold">{m.title}</div>
-            <p className="mt-1.5 text-xs leading-relaxed opacity-85">{m.desc}</p>
-          </div>
-        );
-      })}
-    </div>
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+        {MOTION_TIERS.map((m) => {
+          const isSelected = animationTier === m.id;
+          return (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => onSelectTier(isSelected ? '' : m.id)}
+              className={`cursor-pointer rounded-3xl p-5 text-left transition-all ${
+                isSelected ? 'liquid-glass-active' : 'liquid-glass-pill'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-75">
+                  {m.badge}
+                </span>
+                {isSelected && (
+                  <span className="text-[10px] font-bold opacity-80">✓ Selected</span>
+                )}
+              </div>
+              <div className="mt-1 text-base font-bold">{m.title}</div>
+              <p className="mt-1.5 text-xs leading-relaxed opacity-85">{m.desc}</p>
+            </button>
+          );
+        })}
+      </div>
 
-    <div>
-      <label className="block text-xs font-semibold opacity-75">
-        Have specific animation, cursor, theme-toggle, or 3D ideas? Describe in your own words:
-      </label>
-      <input
-        type="text"
-        value={note}
-        onChange={(e) => onChangeNote(e.target.value)}
-        placeholder="e.g. I want a custom magnetic cursor, a dark/light switch, and a rotating 3D bottle..."
-        className="glass-input mt-1.5 w-full rounded-2xl px-4 py-3 text-xs"
-      />
-    </div>
-  </section>
+      <div>
+        <label className="block text-xs font-semibold opacity-75">
+          Have specific animation, cursor, theme-toggle, or 3D ideas? Describe in your own words:
+        </label>
+        <input
+          type="text"
+          value={note}
+          onChange={(e) => onChangeNote(e.target.value)}
+          placeholder="e.g. I want a custom magnetic cursor, a dark/light switch, and a rotating 3D bottle..."
+          className="glass-input mt-1.5 w-full rounded-2xl px-4 py-3 text-xs"
+        />
+      </div>
+    </section>
+  )
 );

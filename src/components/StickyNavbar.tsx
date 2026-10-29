@@ -7,8 +7,6 @@ interface Props {
   sym: string;
   darkMode: boolean;
   toggleTheme: () => void;
-  grandTotal?: number;
-  onOpenBreakdown?: () => void;
 }
 
 export const StickyNavbar: FC<Props> = ({
@@ -24,7 +22,7 @@ export const StickyNavbar: FC<Props> = ({
           BY<span className="text-[#ff5733]">F</span>.
         </span>
         <span className="hidden text-xs font-semibold opacity-60 sm:inline">
-          Interactive Scope & Price Estimator
+          Interactive Project Scope Configurator
         </span>
       </div>
 

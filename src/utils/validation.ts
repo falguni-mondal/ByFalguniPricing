@@ -78,24 +78,18 @@ export function validateClientSubmission(data: {
   }
 
   // Target Budget
-  const minBudget = data.region === 'INDIA' ? 3300 : 46;
   if (!data.budget || data.budget <= 0) {
     errors.budget = 'Target Budget is required.';
     missingList.push('Target Budget (Tab 01)');
-  } else if (data.budget < minBudget) {
-    errors.budget = `Minimum starting budget is ${
-      data.region === 'INDIA' ? '₹3,300' : '$46'
-    } (1st static page rate).`;
-    missingList.push(`Min Budget ${data.region === 'INDIA' ? '₹3,300' : '$46'} (Tab 01)`);
   }
 
-  // Category & Pages
+  // Category & Pages (Starts at 0; client must select a category or custom note, and choose at least 1 page or describe custom page structure)
   if (!data.projectPurpose && !data.pagesAndTypeNote.trim()) {
     errors.projectPurpose = 'Select a Website Category or describe your custom type.';
     missingList.push('Website Category (Tab 02)');
   }
-  if (!data.pages || data.pages < 1 || data.pages > 200) {
-    errors.pages = 'Pages must be between 1 and 200.';
+  if ((data.pages < 1 && !data.pagesAndTypeNote.trim()) || data.pages > 200) {
+    errors.pages = 'Please select your needed page count (or describe your page structure in the note).';
     missingList.push('Page Count (Tab 02)');
   }
 

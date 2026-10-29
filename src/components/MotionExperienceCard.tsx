@@ -46,7 +46,7 @@ export const MotionExperienceCard: FC<Props> = ({
   <section className="liquid-glass-card relative z-10 space-y-6 rounded-[2rem] p-5 sm:p-10">
     <div>
       <span className="text-[11px] font-bold uppercase tracking-widest opacity-50">
-        03 • Motion, Feel & Visual Experience
+        04 • Motion, Feel & Visual Experience
       </span>
       <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
         How should the website move and feel?

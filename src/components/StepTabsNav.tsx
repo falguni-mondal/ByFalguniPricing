@@ -10,8 +10,8 @@ export interface StepTabItem {
 export const PRICING_TABS: StepTabItem[] = [
   { id: 1, shortLabel: '01 • Region', fullLabel: '01 • Region & Budget' },
   { id: 2, shortLabel: '02 • Category', fullLabel: '02 • Category & Pages' },
-  { id: 3, shortLabel: '03 • Motion', fullLabel: '03 • Motion & 3D' },
-  { id: 4, shortLabel: '04 • Features', fullLabel: '04 • Functionality' },
+  { id: 3, shortLabel: '03 • Features', fullLabel: '03 • Functionality' },
+  { id: 4, shortLabel: '04 • Motion', fullLabel: '04 • Motion & 3D' },
   { id: 5, shortLabel: '05 • Brief', fullLabel: '05 • Brief & Submit' },
 ];
 

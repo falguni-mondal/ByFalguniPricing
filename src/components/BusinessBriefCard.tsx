@@ -32,9 +32,6 @@ interface Props {
   submitting: boolean;
   fullName: string;
   emailPhone: string;
-  sym: string;
-  grandTotal: number;
-  onOpenBreakdown: () => void;
   onSubmit: () => void;
 }
 
@@ -67,9 +64,6 @@ export const BusinessBriefCard: FC<Props> = ({
   submitting,
   fullName,
   emailPhone,
-  sym,
-  grandTotal,
-  onOpenBreakdown,
   onSubmit,
 }) => {
   const previewParagraph = buildRefinedAgreementParagraph(fullName, emailPhone, businessName);
@@ -171,7 +165,7 @@ export const BusinessBriefCard: FC<Props> = ({
               rushDelivery ? 'liquid-glass-active' : 'liquid-glass-pill'
             }`}
           >
-            {rushDelivery ? '✓ ' : '+ '}Rush Delivery (Half the usual time • +30%)
+            {rushDelivery ? '✓ ' : '+ '}Rush Delivery (Half the usual time)
           </button>
         </div>
       </div>
@@ -245,7 +239,7 @@ export const BusinessBriefCard: FC<Props> = ({
               onClick={onOpenAgreementModal}
               className="cursor-pointer font-bold underline decoration-current underline-offset-4 hover:text-[#ff5733]"
             >
-              Website Development Service Guide, Procedures, Processes & Agreement (v3.1)
+              Website Development Service Guide, Procedures, Processes & Agreement
             </button>
             <span>
               . Upon clicking Submit, my signed agreement PDF will be downloaded automatically.
@@ -276,25 +270,15 @@ export const BusinessBriefCard: FC<Props> = ({
       {submittedSuccess ? (
         <div className="liquid-glass-active rounded-3xl p-6 text-center">
           <h3 className="text-lg font-bold">
-            Thank you, {fullName}. Your brief & signed agreement have been submitted.
+            Thank you, {fullName}. Your project brief & signed agreement have been submitted.
           </h3>
           <p className="mt-1 text-xs opacity-80">
-            Your signed Agreement PDF has been downloaded to your device and saved with your
-            estimate ({sym}
-            {Number(grandTotal || 0).toLocaleString()}).
+            Your signed Agreement PDF has been downloaded to your device. I will review your
+            requirements and send you a custom project quote shortly.
           </p>
         </div>
       ) : (
-        <div className="flex flex-col items-stretch justify-between gap-3 pt-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={onOpenBreakdown}
-            className="liquid-glass-pill cursor-pointer rounded-full px-6 py-3.5 text-xs font-semibold"
-          >
-            View Detailed Cost Breakdown ({sym}
-            {Number(grandTotal || 0).toLocaleString()})
-          </button>
-
+        <div className="flex flex-col items-stretch justify-end gap-3 pt-3 sm:flex-row sm:items-center">
           <button
             type="button"
             disabled={submitting || !agreementAccepted || !allRequiredFilled}

@@ -256,12 +256,32 @@ export const COUNTRIES: CountryOption[] = [
   { code: "ZW", name: "Zimbabwe" },
 ];
 
-export const WEBSITE_TYPES = [
+export interface WebsiteTypeOption {
+  id: string;
+  title: string;
+  desc: string;
+  recommendedPages: number;
+  recommendedTags: string[];
+  defaultTags: string[];
+}
+
+export const WEBSITE_TYPES: WebsiteTypeOption[] = [
   {
     id: "ECOMMERCE",
     title: "E-Commerce Store",
-    desc: "Sell physical or digital products online.",
+    desc: "Product showcase, digital catalog, or full online store.",
     recommendedPages: 6,
+    recommendedTags: [
+      "Dynamic Product / Project Catalog Pages",
+      "Image / Video Lightbox Gallery & Sliders",
+      "Shopping Cart & Wishlist Memory",
+      "Online Payment Checkout (UPI/Stripe/PayPal)",
+      "User Login & Member Accounts",
+      "Private Admin Control Panel",
+      "Fast Database Search & Category Filters",
+      "Automated Confirmation Emails",
+      "Customer Reviews, Star Ratings & Testimonials",
+    ],
     defaultTags: [
       "Shopping Cart & Wishlist Memory",
       "Online Payment Checkout (UPI/Stripe/PayPal)",
@@ -276,6 +296,15 @@ export const WEBSITE_TYPES = [
     title: "Business / Corporate",
     desc: "Establish brand trust and generate client leads.",
     recommendedPages: 5,
+    recommendedTags: [
+      "Contact & Enquiry Form",
+      "WhatsApp Direct Chat / Quick Inquiry Button",
+      "Google Maps Location & Store Embed",
+      "Interactive Tabs, Accordions & Pop-up Modals",
+      "Customer Reviews, Star Ratings & Testimonials",
+      "Advanced Google SEO & Sitemaps",
+      "Visitor Traffic Analytics",
+    ],
     defaultTags: [
       "Contact & Enquiry Form",
       "Interactive Tabs, Accordions & Pop-up Modals",
@@ -289,6 +318,14 @@ export const WEBSITE_TYPES = [
     title: "Creative Portfolio / Personal Brand",
     desc: "Showcase works, case studies, and credentials.",
     recommendedPages: 3,
+    recommendedTags: [
+      "Contact & Enquiry Form",
+      "Image / Video Lightbox Gallery & Sliders",
+      "Downloadable PDF Brochures / Menus / Catalogs",
+      "Dark / Light Theme Mode Switcher",
+      "Smooth Page-to-Page Transitions",
+      "Visitor Traffic Analytics",
+    ],
     defaultTags: [
       "Contact & Enquiry Form",
       "Interactive Tabs, Accordions & Pop-up Modals",
@@ -300,6 +337,15 @@ export const WEBSITE_TYPES = [
     title: "Gym, Fitness & Wellness Studio",
     desc: "Class schedules, memberships, and trainer bookings.",
     recommendedPages: 5,
+    recommendedTags: [
+      "Appointment & Slot Booking System",
+      "WhatsApp Direct Chat / Quick Inquiry Button",
+      "Google Maps Location & Store Embed",
+      "Customer Reviews, Star Ratings & Testimonials",
+      "Contact & Enquiry Form",
+      "Online Payment Checkout (UPI/Stripe/PayPal)",
+      "User Login & Member Accounts",
+    ],
     defaultTags: [
       "Appointment & Slot Booking System",
       "Online Payment Checkout (UPI/Stripe/PayPal)",
@@ -313,6 +359,15 @@ export const WEBSITE_TYPES = [
     title: "Restaurant, Cafe & Cloud Kitchen",
     desc: "Interactive menus, table reservations, and enquiries.",
     recommendedPages: 4,
+    recommendedTags: [
+      "Image / Video Lightbox Gallery & Sliders",
+      "Downloadable PDF Brochures / Menus / Catalogs",
+      "Appointment & Slot Booking System",
+      "WhatsApp Direct Chat / Quick Inquiry Button",
+      "Google Maps Location & Store Embed",
+      "Customer Reviews, Star Ratings & Testimonials",
+      "Contact & Enquiry Form",
+    ],
     defaultTags: [
       "Appointment & Slot Booking System",
       "Interactive Tabs, Accordions & Pop-up Modals",
@@ -325,6 +380,16 @@ export const WEBSITE_TYPES = [
     title: "Real Estate & Property Portal",
     desc: "Property listings, location filters, and lead capture.",
     recommendedPages: 6,
+    recommendedTags: [
+      "Dynamic Product / Project Catalog Pages",
+      "Fast Database Search & Category Filters",
+      "Image / Video Lightbox Gallery & Sliders",
+      "Google Maps Location & Store Embed",
+      "WhatsApp Direct Chat / Quick Inquiry Button",
+      "Contact & Enquiry Form",
+      "Private Admin Control Panel",
+      "Advanced Google SEO & Sitemaps",
+    ],
     defaultTags: [
       "Fast Database Search & Category Filters",
       "Private Admin Control Panel",
@@ -338,6 +403,14 @@ export const WEBSITE_TYPES = [
     title: "Clinic, Doctor & Healthcare",
     desc: "Patient appointment booking and service directory.",
     recommendedPages: 5,
+    recommendedTags: [
+      "Appointment & Slot Booking System",
+      "Automated Confirmation Emails",
+      "WhatsApp Direct Chat / Quick Inquiry Button",
+      "Google Maps Location & Store Embed",
+      "Contact & Enquiry Form",
+      "Customer Reviews, Star Ratings & Testimonials",
+    ],
     defaultTags: [
       "Appointment & Slot Booking System",
       "Automated Confirmation Emails",
@@ -350,6 +423,15 @@ export const WEBSITE_TYPES = [
     title: "SaaS, AI Tool or Tech Startup",
     desc: "Product landing, user accounts, and subscription checkout.",
     recommendedPages: 5,
+    recommendedTags: [
+      "Dark / Light Theme Mode Switcher",
+      "Interactive Tabs, Accordions & Pop-up Modals",
+      "User Login & Member Accounts",
+      "Role-Based Staff / Admin Access",
+      "Online Payment Checkout (UPI/Stripe/PayPal)",
+      "Newsletter Email Capture",
+      "Advanced Google SEO & Sitemaps",
+    ],
     defaultTags: [
       "User Login & Member Accounts",
       "Role-Based Staff / Admin Access",
@@ -363,6 +445,15 @@ export const WEBSITE_TYPES = [
     title: "Coaching, Courses & EdTech",
     desc: "Student portal, course listings, and fee payments.",
     recommendedPages: 6,
+    recommendedTags: [
+      "Dynamic Product / Project Catalog Pages",
+      "User Login & Member Accounts",
+      "Private Admin Control Panel",
+      "Online Payment Checkout (UPI/Stripe/PayPal)",
+      "Fast Database Search & Category Filters",
+      "Contact & Enquiry Form",
+      "Downloadable PDF Brochures / Menus / Catalogs",
+    ],
     defaultTags: [
       "User Login & Member Accounts",
       "Private Admin Control Panel",
@@ -376,6 +467,14 @@ export const WEBSITE_TYPES = [
     title: "Blog, Magazine & Content Hub",
     desc: "Publish articles, categories, and grow subscribers.",
     recommendedPages: 4,
+    recommendedTags: [
+      "Blog / Article Publishing CMS",
+      "Newsletter Email Capture",
+      "Fast Database Search & Category Filters",
+      "Social Media Feed & Share Integration",
+      "Dark / Light Theme Mode Switcher",
+      "Advanced Google SEO & Sitemaps",
+    ],
     defaultTags: [
       "Blog / Article Publishing CMS",
       "Newsletter Email Capture",
@@ -385,21 +484,54 @@ export const WEBSITE_TYPES = [
   },
 ];
 
-export const FUNCTIONALITY_OPTIONS = [
+export const COMMON_FUNCTIONALITY_OPTIONS = [
   "Contact & Enquiry Form",
-  "Newsletter Email Capture",
+  "WhatsApp Direct Chat / Quick Inquiry Button",
+  "Google Maps Location & Store Embed",
   "Interactive Tabs, Accordions & Pop-up Modals",
-  "User Login & Member Accounts",
-  "Role-Based Staff / Admin Access",
-  "Private Admin Control Panel",
+  "Image / Video Lightbox Gallery & Sliders",
+  "Customer Reviews, Star Ratings & Testimonials",
+  "Downloadable PDF Brochures / Menus / Catalogs",
+  "Social Media Feed & Share Integration",
+  "Newsletter Email Capture",
+  "Dark / Light Theme Mode Switcher",
+  "Smooth Page-to-Page Transitions",
+  "Dynamic Product / Project Catalog Pages",
   "Blog / Article Publishing CMS",
+  "Fast Database Search & Category Filters",
+  "User Login & Member Accounts",
+  "Private Admin Control Panel",
   "Shopping Cart & Wishlist Memory",
   "Online Payment Checkout (UPI/Stripe/PayPal)",
   "Appointment & Slot Booking System",
-  "Fast Database Search & Category Filters",
-  "Multi-Language Website Switcher",
   "Automated Confirmation Emails",
-  "WhatsApp / CRM / Google Maps Integration",
   "Advanced Google SEO & Sitemaps",
+  "Core Web Vitals & Speed Optimization",
   "Visitor Traffic Analytics",
+  "Cookie Consent & Privacy Banner",
+];
+
+export const UNCOMMON_FUNCTIONALITY_OPTIONS = [
+  "Role-Based Staff / Admin Access",
+  "Multi-Language Website Switcher",
+  "Right-to-Left (RTL) Language Support",
+  "Custom Magnetic / Interactive Cursor",
+  "Animated Brand Intro Preloader",
+  "Live Chat / AI Chatbot Assistant",
+  "Custom Price, EMI or ROI Calculator",
+  "Multi-Step Quiz, Assessment or Lead Funnel",
+  "Coupon Codes, Promo Discounts & Offers",
+  "PDF Invoice / Receipt / Certificate Generator",
+  "Order Tracking / Application Status Lookup",
+  "Event Countdown & QR Ticket / Pass System",
+  "Audio / Video Streaming & Custom Media Player",
+  "WhatsApp / CRM / Google Maps Integration",
+  "Cloud Media & Image Auto-Optimization",
+  "Advanced Backend Security & Rate-Limiting",
+  "Written Backend API Documentation",
+];
+
+export const FUNCTIONALITY_OPTIONS = [
+  ...COMMON_FUNCTIONALITY_OPTIONS,
+  ...UNCOMMON_FUNCTIONALITY_OPTIONS,
 ];

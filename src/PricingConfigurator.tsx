@@ -1,5 +1,5 @@
 // frontend/src/PricingConfigurator.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { LiquidGlassFilterSVG } from './components/LiquidGlass';
 import { COUNTRIES, type CountryOption } from './constants/pricingData';
 import { StickyNavbar } from './components/StickyNavbar';
@@ -9,16 +9,24 @@ import { WebsiteCategoryCard } from './components/WebsiteCategoryCard';
 import { MotionExperienceCard, type MotionTier } from './components/MotionExperienceCard';
 import { FunctionalityCard } from './components/FunctionalityCard';
 import { BusinessBriefCard } from './components/BusinessBriefCard';
-import { CostBreakdownModal } from './components/CostBreakdownModal';
 import { AgreementModal } from './components/AgreementModal';
 import { uploadQueuedClientFiles } from './components/ImageKitUploader';
 import { generateAndDownloadAgreementPdf } from './utils/agreementPdfGenerator';
 import { validateClientSubmission } from './utils/validation';
+import { evaluateProjectQuote } from './utils/localPricingEngine';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 export default function PricingConfigurator() {
-  const [darkMode, setDarkMode] = useState(false);
+  // Default to Dark Mode initially with zero flash of light theme
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      return localStorage.getItem('byf-pricing-theme') !== 'light';
+    } catch {
+      return true;
+    }
+  });
   const [activeTab, setActiveTab] = useState<number>(1);
   const cardTopRef = useRef<HTMLDivElement>(null);
 
@@ -46,11 +54,11 @@ export default function PricingConfigurator() {
     briefExtraNote: '',
   });
 
-  // Initial State: Starts at 1 page, 0 budget, no category selected yet
+  // Initial State: Starts at 0 pages, 0 budget, no category or services selected yet
   const [simpleChoices, setSimpleChoices] = useState({
     region: 'INDIA' as 'INDIA' | 'INTL',
     budget: 0,
-    pages: 1,
+    pages: 0,
     projectPurpose: '',
     animationTier: 'NONE' as MotionTier,
     webglScenes: 0,
@@ -58,18 +66,29 @@ export default function PricingConfigurator() {
   });
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [quote, setQuote] = useState<any>(null);
-  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [masterConfig, setMasterConfig] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('byf-pricing-theme');
-    if (saved === 'dark') {
-      setDarkMode(true);
+    if (darkMode) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
+  }, [darkMode]);
+
+  // Fetch master pricing config once in the background so local calculation is 100% instantaneous (0ms lag)
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/pricing-config`, { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setMasterConfig(data);
+      })
+      .catch(() => {});
+    return () => controller.abort();
   }, []);
 
   const toggleTheme = () => {
@@ -142,23 +161,20 @@ export default function PricingConfigurator() {
     }));
   };
 
-  // Only combine the client's actual custom written notes (Never duplicate selectedTags here!)
+  // Only combine the client's actual custom written notes
   const combinedCustomNotesOnly = [
     customSectionNotes.pagesAndTypeNote.trim(),
-    customSectionNotes.motionAndFeelNote.trim(),
     customSectionNotes.functionalityNote.trim(),
+    customSectionNotes.motionAndFeelNote.trim(),
     customSectionNotes.briefExtraNote.trim(),
   ]
     .filter(Boolean)
     .join('\n');
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    fetch(`${API_BASE}/api/quote/evaluate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  // Instantaneous 0ms calculation in memory (hidden from frontend UI, sent to Admin Panel on submit)
+  const quote = useMemo(() => {
+    return evaluateProjectQuote(
+      {
         ...simpleChoices,
         animationPages: simpleChoices.pages,
         webglScenes:
@@ -167,15 +183,10 @@ export default function PricingConfigurator() {
             : 0,
         selectedTags,
         clientDescription: combinedCustomNotesOnly,
-      }),
-      signal: controller.signal,
-    })
-      .then((r) => r.json())
-      .then((data) => setQuote(data))
-      .catch(() => {});
-
-    return () => controller.abort();
-  }, [simpleChoices, selectedTags, combinedCustomNotesOnly]);
+      },
+      masterConfig
+    );
+  }, [simpleChoices, selectedTags, combinedCustomNotesOnly, masterConfig]);
 
   const sym = quote?.currencySymbol || (simpleChoices.region === 'INDIA' ? '₹' : '$');
 
@@ -196,7 +207,6 @@ export default function PricingConfigurator() {
 
     try {
       const agreedAtIso = new Date().toISOString();
-
 
       const { pdfFile, acceptanceText } = generateAndDownloadAgreementPdf({
         fullName,
@@ -219,6 +229,7 @@ export default function PricingConfigurator() {
         designReferences: designReferences.trim(),
         selectedTags,
         customSectionNotes,
+        attachedFileNames: pendingFiles.map((f) => f.name),
         quoteItems: quote?.items || [],
         milestones: quote?.milestones || [],
         agreedAtIso,
@@ -245,7 +256,7 @@ export default function PricingConfigurator() {
         console.warn('ImageKit upload skipped or failed; storing full record in MongoDB:', uploadErr);
       }
 
-      // 3. Save complete, non-duplicated client record to MongoDB
+      // 3. Save complete client record + calculated estimate to MongoDB for Admin Panel
       const res = await fetch(`${API_BASE}/api/quotes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -265,13 +276,13 @@ export default function PricingConfigurator() {
           rushDelivery: simpleChoices.rushDelivery,
           designReferences: designReferences.trim(),
           budget: simpleChoices.budget,
-          // Store only actual custom written notes in clientDescription (no duplicated Selected Features!)
           clientDescription: combinedCustomNotesOnly,
           uploadedAssets: clientProjectAssets,
           signedAgreementPdfUrl: signedAgreementUrl,
           signedAgreementFileId,
           signedAgreementText: acceptanceText,
           agreedAt: agreedAtIso,
+          evaluatedQuote: quote,
           simpleChoices: {
             ...simpleChoices,
             selectedTags,
@@ -308,19 +319,17 @@ export default function PricingConfigurator() {
         sym={sym}
         darkMode={darkMode}
         toggleTheme={toggleTheme}
-        grandTotal={quote?.grandTotal || 0}
-        onOpenBreakdown={() => setShowBreakdownModal(true)}
       />
 
-      <main className="relative z-10 mx-auto w-full max-w-4xl px-4 pb-44 pt-22 sm:px-6 sm:pt-28 2xl:max-w-5xl">
+      <main className="relative z-10 mx-auto w-full max-w-4xl px-4 pb-28 pt-22 sm:px-6 sm:pt-28 2xl:max-w-5xl">
         <div className="mb-7 text-center sm:mb-10">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-50">
-            Transparent Project Configurator
+            Interactive Project Scope Configurator
           </span>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-5xl 2xl:text-6xl">
             Tell me about your vision.
             <br />
-            <span className="opacity-45">Get your live estimate immediately.</span>
+            <span className="opacity-45">Configure your project needs for a custom quote.</span>
           </h1>
         </div>
 
@@ -349,13 +358,11 @@ export default function PricingConfigurator() {
               projectPurpose={simpleChoices.projectPurpose}
               pages={simpleChoices.pages}
               onSelectWebsiteType={(t) => {
-                // Smartly updates pages to the recommended page count for the chosen category
+                // Only set the selected category; do NOT auto-select services or overwrite page count
                 setSimpleChoices((p) => ({
                   ...p,
                   projectPurpose: t.id,
-                  pages: t.recommendedPages,
                 }));
-                setSelectedTags(t.defaultTags);
               }}
               onChangePages={(pages) => setSimpleChoices((p) => ({ ...p, pages }))}
               note={customSectionNotes.pagesAndTypeNote}
@@ -366,6 +373,22 @@ export default function PricingConfigurator() {
           )}
 
           {activeTab === 3 && (
+            <FunctionalityCard
+              projectPurpose={simpleChoices.projectPurpose}
+              selectedTags={selectedTags}
+              onToggleTag={(tag) =>
+                setSelectedTags((prev) =>
+                  prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                )
+              }
+              note={customSectionNotes.functionalityNote}
+              onChangeNote={(functionalityNote) =>
+                setCustomSectionNotes((p) => ({ ...p, functionalityNote }))
+              }
+            />
+          )}
+
+          {activeTab === 4 && (
             <MotionExperienceCard
               animationTier={simpleChoices.animationTier}
               onSelectTier={(animationTier) =>
@@ -378,21 +401,6 @@ export default function PricingConfigurator() {
               note={customSectionNotes.motionAndFeelNote}
               onChangeNote={(motionAndFeelNote) =>
                 setCustomSectionNotes((p) => ({ ...p, motionAndFeelNote }))
-              }
-            />
-          )}
-
-          {activeTab === 4 && (
-            <FunctionalityCard
-              selectedTags={selectedTags}
-              onToggleTag={(tag) =>
-                setSelectedTags((prev) =>
-                  prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-                )
-              }
-              note={customSectionNotes.functionalityNote}
-              onChangeNote={(functionalityNote) =>
-                setCustomSectionNotes((p) => ({ ...p, functionalityNote }))
               }
             />
           )}
@@ -431,9 +439,6 @@ export default function PricingConfigurator() {
               submitting={submitting}
               fullName={fullName}
               emailPhone={emailPhoneCombined}
-              sym={sym}
-              grandTotal={quote?.grandTotal || 0}
-              onOpenBreakdown={() => setShowBreakdownModal(true)}
               onSubmit={handleSubmitQuote}
             />
           )}
@@ -471,18 +476,24 @@ export default function PricingConfigurator() {
         fullName={fullName}
         emailPhone={emailPhoneCombined}
         businessName={businessName}
+        businessDescription={businessDescription}
+        mainGoal={mainGoal}
+        launchDateReason={launchDateReason}
+        designReferences={designReferences}
+        countryName={selectedCountry.name}
+        sym={sym}
+        budget={simpleChoices.budget}
+        projectPurpose={simpleChoices.projectPurpose}
+        pages={simpleChoices.pages}
+        animationTier={simpleChoices.animationTier}
+        rushDelivery={simpleChoices.rushDelivery}
+        selectedTags={selectedTags}
+        customSectionNotes={customSectionNotes}
         canAccept={allRequiredFilled}
         onAcceptAndClose={() => {
           setAgreementAccepted(true);
           setShowAgreementModal(false);
         }}
-      />
-
-      <CostBreakdownModal
-        quote={quote}
-        sym={sym}
-        showModal={showBreakdownModal}
-        setShowModal={setShowBreakdownModal}
       />
     </div>
   );

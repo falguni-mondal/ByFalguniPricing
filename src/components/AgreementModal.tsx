@@ -4,8 +4,10 @@ import {
   SCOPE_COMPARISON,
   WORKFLOW_STEPS,
   AGREEMENT_SECTIONS,
+  MOTION_TIER_LABELS,
   buildRefinedAgreementParagraph,
 } from '../utils/agreementPdfGenerator';
+import { WEBSITE_TYPES } from '../constants/pricingData';
 
 interface Props {
   isOpen: boolean;
@@ -13,6 +15,24 @@ interface Props {
   fullName: string;
   emailPhone: string;
   businessName: string;
+  businessDescription?: string;
+  mainGoal?: string;
+  launchDateReason?: string;
+  designReferences?: string;
+  countryName?: string;
+  sym?: string;
+  budget?: number;
+  projectPurpose?: string;
+  pages?: number;
+  animationTier?: string;
+  rushDelivery?: boolean;
+  selectedTags?: string[];
+  customSectionNotes?: {
+    pagesAndTypeNote?: string;
+    motionAndFeelNote?: string;
+    functionalityNote?: string;
+    briefExtraNote?: string;
+  };
   canAccept: boolean;
   onAcceptAndClose: () => void;
 }
@@ -23,12 +43,28 @@ export const AgreementModal: FC<Props> = ({
   fullName,
   emailPhone,
   businessName,
+  businessDescription = '',
+  mainGoal = '',
+  launchDateReason = '',
+  designReferences = '',
+  countryName = 'India',
+  sym = '₹',
+  budget = 0,
+  projectPurpose = '',
+  pages = 0,
+  animationTier = 'NONE',
+  rushDelivery = false,
+  selectedTags = [],
+  customSectionNotes = {},
   canAccept,
   onAcceptAndClose,
 }) => {
   if (!isOpen) return null;
 
   const liveStatement = buildRefinedAgreementParagraph(fullName, emailPhone, businessName);
+  const categoryObj = WEBSITE_TYPES.find((t) => t.id === projectPurpose);
+  const categoryLabel = categoryObj ? categoryObj.title : projectPurpose || 'Not selected yet';
+  const motionLabel = MOTION_TIER_LABELS[animationTier] || animationTier;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 backdrop-blur-xs sm:p-6">
@@ -37,7 +73,7 @@ export const AgreementModal: FC<Props> = ({
         <div className="flex items-center justify-between gap-4 border-b border-neutral-500/15 px-5 py-4 sm:px-8 sm:py-5">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">
-              • 15-Day Quote Validity
+              • Official Project Scope & Service Agreement
             </span>
             <h2 className="mt-0.5 text-lg font-black tracking-tight sm:text-2xl">
               Website Development: Service Guide, Procedures & Agreement
@@ -47,6 +83,103 @@ export const AgreementModal: FC<Props> = ({
 
         {/* Scrollable Agreement Body */}
         <div className="space-y-6 overflow-y-auto px-5 py-6 text-xs leading-relaxed sm:px-8">
+          {/* 0. Live Summary of Client's Choices & Custom Writings (Included in PDF) */}
+          <div className="glass-subcard space-y-3 rounded-2xl border border-[#ff5733]/30 p-4 sm:p-5">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#ff5733]">
+              Your Submitted Choices & Custom Writings (Recorded in Agreement PDF)
+            </span>
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              <div>
+                <span className="opacity-60">Client & Contact:</span>{' '}
+                <strong>{fullName || '—'}</strong> ({emailPhone || '—'})
+              </div>
+              <div>
+                <span className="opacity-60">Country & Target Budget:</span>{' '}
+                <strong>
+                  {countryName} •{' '}
+                  {budget > 0
+                    ? `${sym}${budget.toLocaleString()}`
+                    : 'Not specified (Custom quote requested)'}
+                </strong>
+              </div>
+              <div>
+                <span className="opacity-60">Website Category & Pages:</span>{' '}
+                <strong>
+                  {categoryLabel} •{' '}
+                  {pages > 0
+                    ? `${pages} ${pages === 1 ? 'Page' : 'Pages'}`
+                    : '0 (To be recommended based on brief)'}
+                </strong>
+              </div>
+              <div>
+                <span className="opacity-60">Motion Tier & Timeline:</span>{' '}
+                <strong>
+                  {motionLabel} • {rushDelivery ? 'Rush Delivery' : 'Standard Timeline'}
+                </strong>
+              </div>
+              <div>
+                <span className="opacity-60">Business & Main Goal:</span>{' '}
+                <strong>
+                  {businessName || '—'} — {mainGoal || '—'}
+                </strong>
+              </div>
+              <div>
+                <span className="opacity-60">Ideal Launch:</span>{' '}
+                <strong>{launchDateReason || '—'}</strong>
+              </div>
+            </div>
+
+            {businessDescription && (
+              <div>
+                <span className="opacity-60">Business Description:</span>{' '}
+                <span className="font-medium">{businessDescription}</span>
+              </div>
+            )}
+
+            {designReferences && (
+              <div>
+                <span className="opacity-60">Design / Reference URLs:</span>{' '}
+                <span className="font-medium break-all">{designReferences}</span>
+              </div>
+            )}
+
+            <div>
+              <span className="opacity-60">
+                Selected Functionalities ({selectedTags.length}):
+              </span>{' '}
+              <span className="font-semibold">
+                {selectedTags.length > 0 ? selectedTags.join(', ') : 'None selected'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 border-t border-neutral-500/15 pt-2.5 sm:grid-cols-2">
+              <div>
+                <span className="opacity-60">Category & Pages Custom Note:</span>{' '}
+                <span className="font-medium">
+                  {customSectionNotes.pagesAndTypeNote?.trim() || 'None'}
+                </span>
+              </div>
+              <div>
+                <span className="opacity-60">Functionality Custom Note:</span>{' '}
+                <span className="font-medium">
+                  {customSectionNotes.functionalityNote?.trim() || 'None'}
+                </span>
+              </div>
+              <div>
+                <span className="opacity-60">Motion & 3D Custom Note:</span>{' '}
+                <span className="font-medium">
+                  {customSectionNotes.motionAndFeelNote?.trim() || 'None'}
+                </span>
+              </div>
+              <div>
+                <span className="opacity-60">Additional Brief Custom Note:</span>{' '}
+                <span className="font-medium">
+                  {customSectionNotes.briefExtraNote?.trim() || 'None'}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* 1. Scope Comparison Grid */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="glass-subcard rounded-2xl p-4 sm:p-5">
@@ -125,7 +258,7 @@ export const AgreementModal: FC<Props> = ({
           <span className="text-[11px] opacity-65">
             {canAccept
               ? 'All required fields are filled. You may accept the agreement below.'
-              : 'Complete all required (*) fields across Tabs 01–05 to enable the agreement checkbox.'}
+              : 'Complete all required (*) fields across the configurator to enable the agreement checkbox.'}
           </span>
           <div className="flex items-center gap-2.5">
             <button

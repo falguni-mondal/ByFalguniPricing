@@ -205,8 +205,8 @@ export const CountryRegionCard: FC<Props> = ({
               className="w-full bg-transparent text-sm font-bold focus:outline-none"
               placeholder={
                 selectedCountry.code === 'IN'
-                  ? 'Enter your budget (min ₹3,300)'
-                  : 'Enter your budget (min $46)'
+                  ? 'Enter your target budget in ₹ INR'
+                  : 'Enter your target budget in $ USD'
               }
             />
           </div>
